@@ -9,7 +9,7 @@ NUS Exam Countdown App for Hack&amp;Roll 2019
 1. [Sean Low](https://github.com/seanlowjk)
 
 ## Screenshots
-![Screenshot](screenshots/screenshot1.png)
+[Screenshot](screenshots/screenshot1.png)
 
 ## Manual
 1. Add your modules by entering your module code into the text box and click 'Search'.
