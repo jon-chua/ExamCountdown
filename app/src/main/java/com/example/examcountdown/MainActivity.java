@@ -2,8 +2,8 @@ package com.example.examcountdown;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,27 +36,9 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        textView = findViewById(R.id.textView);
-        InputStream is = this.getResources().openRawResource(R.raw.data3);
-        reader = new BufferedReader(new InputStreamReader(is));
+        readData();
 
-        try {
-            String data = reader.readLine();
-            while(data != null) {
-                String[] temp = data.split(",");
-                Exam test = new Exam(format.parse(temp[0]), temp[1], temp[2]);
-                exams.add(test);
-                data = reader.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            textView.setText("error!");
-        } catch (ParseException e) {
-            e.printStackTrace();
-            textView.setText("error2");
-        }
-
-        Button button = findViewById(R.id.button);
+        Button button = findViewById(R.id.button_search);
         final EditText search = findViewById(R.id.editText);
 
         button.setOnClickListener(new View.OnClickListener() {
@@ -64,16 +46,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 boolean found = false;
-                String code = search.getText().toString().toUpperCase();
-
+                String code = search.getText().toString().trim().toUpperCase();
 
                 for (int i = 0; i < exams.size(); i++) {
                     if (exams.get(i).getCode().equals(code)) {
+                        // Found
+                        found = true;
                         if (t != null ) t.interrupt();
                         final int j = i;
-                        found = true;
                         t = new Thread() {
-
                             @Override
                             public void run() {
                                 try {
@@ -91,21 +72,21 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         };
-
                         t.start();
                         break;
                     }
                 }
                 if (!found) {
                     if (t != null) t.interrupt();
-                    textView.setText("Module not found!");
+                    textView.setText("You have entered an invalid module,\nor the module does not have an exam component!");
                 }
             }
         });
     }
 
     private void updateTextView(String text, Date date1, Date date2) {
-        textView.setText(text + "\n" + getDiff(date1, date2) + " remaining");
+        String str = "<b>"  + text + "</b><br />" + "Exam: " + format.format(date2) + "<br />" + getDiff(date1, date2) + " remaining";
+        textView.setText(Html.fromHtml(str));
     }
 
     public String getDiff(Date date1, Date date2) {
@@ -117,6 +98,26 @@ public class MainActivity extends AppCompatActivity {
         long diffDays = diff / (24 * 60 * 60 * 1000);
 
        return diffDays + " days, " + diffHours + " hours, " + diffMinutes + " minutes, " + diffSeconds + " seconds";
+    }
+
+    private void readData() {
+        textView = findViewById(R.id.textView);
+        InputStream is = this.getResources().openRawResource(R.raw.data3);
+        reader = new BufferedReader(new InputStreamReader(is));
+
+        try {
+            String data = reader.readLine();
+            while(data != null) {
+                String[] temp = data.split(",");
+                Exam test = new Exam(format.parse(temp[0]), temp[1], temp[2]);
+                exams.add(test);
+                data = reader.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

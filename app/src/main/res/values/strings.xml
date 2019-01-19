@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">ExamCountdown</string>
+    <string name="app_name">JJS: NUS Exam Countdown</string>
     <string name="action_settings">Settings</string>
     <string name="module_code_enter">Enter Module Code...</string>
     <string name="module_search">Search</string>
+    <string name="module_clear">Clear</string>
 </resources>
