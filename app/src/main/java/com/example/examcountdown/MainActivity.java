@@ -2,22 +2,32 @@ package com.example.examcountdown;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
 
     BufferedReader reader;
+    SimpleDateFormat format = new SimpleDateFormat("dd MMM yyyy HH:mm");
+    ArrayList<Exam> exams = new ArrayList<>();
+    TextView textView;
+    Thread t;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,22 +36,87 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final TextView textView = findViewById(R.id.textView);
-        InputStream is = this.getResources().openRawResource(R.raw.data);
+        textView = findViewById(R.id.textView);
+        InputStream is = this.getResources().openRawResource(R.raw.data3);
         reader = new BufferedReader(new InputStreamReader(is));
 
-        Button button2 = findViewById(R.id.button2);
-        button2.setOnClickListener(new View.OnClickListener() {
+        try {
+            String data = reader.readLine();
+            while(data != null) {
+                String[] temp = data.split(",");
+                Exam test = new Exam(format.parse(temp[0]), temp[1], temp[2]);
+                exams.add(test);
+                data = reader.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            textView.setText("error!");
+        } catch (ParseException e) {
+            e.printStackTrace();
+            textView.setText("error2");
+        }
+
+        Button button = findViewById(R.id.button);
+        final EditText search = findViewById(R.id.editText);
+
+        button.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-                try {
-                    textView.setText(reader.readLine());
-                } catch (IOException e) {
-                    e.printStackTrace();
+                boolean found = false;
+                String code = search.getText().toString().toUpperCase();
+
+
+                for (int i = 0; i < exams.size(); i++) {
+                    if (exams.get(i).getCode().equals(code)) {
+                        if (t != null ) t.interrupt();
+                        final int j = i;
+                        found = true;
+                        t = new Thread() {
+
+                            @Override
+                            public void run() {
+                                try {
+                                    while (!isInterrupted()) {
+                                        Thread.sleep(1000);
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Date now = new Date();
+                                                updateTextView(exams.get(j).toString(), now, exams.get(j).getDateTime());
+                                            }
+                                        });
+                                    }
+                                } catch (InterruptedException e) {
+                                }
+                            }
+                        };
+
+                        t.start();
+                        break;
+                    }
+                }
+                if (!found) {
+                    if (t != null) t.interrupt();
+                    textView.setText("Module not found!");
                 }
             }
         });
+    }
+
+    private void updateTextView(String text, Date date1, Date date2) {
+        textView.setText(text + "\n" + getDiff(date1, date2) + " remaining");
+    }
+
+    public String getDiff(Date date1, Date date2) {
+        long diff = date2.getTime() - date1.getTime();
+
+        long diffSeconds = diff / 1000 % 60;
+        long diffMinutes = diff / (60 * 1000) % 60;
+        long diffHours = diff / (60 * 60 * 1000) % 24;
+        long diffDays = diff / (24 * 60 * 60 * 1000);
+
+       return diffDays + " days, " + diffHours + " hours, " + diffMinutes + " minutes, " + diffSeconds + " seconds";
     }
 
     @Override
