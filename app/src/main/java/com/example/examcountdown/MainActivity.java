@@ -1,10 +1,12 @@
 package com.example.examcountdown;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,9 +15,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         readData();
+        readFiles();
 
         Button button_search = findViewById(R.id.button_search);
         Button button_clear = findViewById(R.id.button_clear);
@@ -64,27 +70,12 @@ public class MainActivity extends AppCompatActivity {
                             if (curr.get(j).getCode().equals(temp.getCode())) duplicate = true;
                         }
 
-                        if (!duplicate) curr.add(temp);
+                        if (!duplicate) {
+                            curr.add(temp);
+                            saveFiles();
+                        }
 
-                        t = new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    while (!isInterrupted()) {
-                                        Thread.sleep(1000);
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                updateTextView();
-                                            }
-                                        });
-                                    }
-                                } catch (InterruptedException e) {
-                                    return;
-                                }
-                            }
-                        };
-                        t.start();
+                        runThread();
                         break;
                     }
                 }
@@ -101,8 +92,71 @@ public class MainActivity extends AppCompatActivity {
                 if (t != null) t.interrupt();
                 curr.clear();
                 textView.setText("");
+                saveFiles();
             }
         });
+    }
+
+    private void saveFiles() {
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput("config.txt", Context.MODE_PRIVATE));
+            for (Exam e : curr) {
+                outputStreamWriter.write(e.getCode() + "\n");
+            }
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
+
+    private void readFiles() {
+        try {
+            InputStream inputStream = this.openFileInput("config.txt");
+
+            if (inputStream != null) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                String data = bufferedReader.readLine();
+                while (data != null) {
+                    for (int i = 0; i < exams.size(); i++) {
+                        final Exam temp = exams.get(i);
+                        if (temp.getCode().equals(data)) {
+                            curr.add(temp);
+                        }
+                    }
+                    data = bufferedReader.readLine();
+                }
+                runThread();
+            }
+        } catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
+    }
+
+    private void runThread() {
+        t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateTextView();
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+        };
+        t.start();
     }
 
     private void updateTextView() {
