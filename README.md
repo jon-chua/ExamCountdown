@@ -1,4 +1,6 @@
 # ExamCountdown
+![Exam Countdown App Logo](app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png)
+
 NUS Exam Countdown App for Hack&amp;Roll 2019
 
 ## Team Members
