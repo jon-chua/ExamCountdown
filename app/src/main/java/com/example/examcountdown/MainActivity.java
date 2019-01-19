@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         Button button_search = findViewById(R.id.button_search);
         Button button_clear = findViewById(R.id.button_clear);
+        textView = findViewById(R.id.textView);
+
         final EditText search = findViewById(R.id.editText);
 
         button_search.setOnClickListener(new View.OnClickListener() {
@@ -110,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
                 str += "<b>" + e.toString() + "</b><br /><u>Exam: " + format.format(e.getDateTime()) + "</u><br />" + getDiff(now, e.getDateTime()) + " remaining<br /><br />";
             }
             textView.setText(Html.fromHtml(str));
+            textView.setMovementMethod(new ScrollingMovementMethod());
         } else {
             wait = false;
         }
