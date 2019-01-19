@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Exam> curr = new ArrayList<>();
     TextView textView;
     Thread t;
+    boolean wait = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +55,14 @@ public class MainActivity extends AppCompatActivity {
                         // Found
                         found = true;
                         if (t != null ) t.interrupt();
-                        curr.add(temp);
-                        final int j = i;
+
+                        boolean duplicate = false;
+                        for (int j = 0; j < curr.size(); j++) {
+                            if (curr.get(j).getCode().equals(temp.getCode())) duplicate = true;
+                        }
+
+                        if (!duplicate) curr.add(temp);
+
                         t = new Thread() {
                             @Override
                             public void run() {
@@ -70,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
                                         });
                                     }
                                 } catch (InterruptedException e) {
+                                    return;
                                 }
                             }
                         };
@@ -78,8 +86,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 if (!found) {
-                    if (t != null) t.interrupt();
                     textView.setText("You have entered an invalid module,\nor the module does not have an exam component!");
+                    wait = true;
                 }
             }
         });
@@ -97,10 +105,14 @@ public class MainActivity extends AppCompatActivity {
     private void updateTextView() {
         Date now = new Date();
         String str = "";
-        for (Exam e : curr) {
-            str += "<b>"  + e.toString() + "</b><br />" + "Exam: " + format.format(e.getDateTime()) + "<br />" + getDiff(now, e.getDateTime())+ " remaining" + "<br /><br />";
+        if (!wait) {
+            for (Exam e : curr) {
+                str += "<b>" + e.toString() + "</b><br /><u>Exam: " + format.format(e.getDateTime()) + "</u><br />" + getDiff(now, e.getDateTime()) + " remaining<br /><br />";
+            }
+            textView.setText(Html.fromHtml(str));
+        } else {
+            wait = false;
         }
-        textView.setText(Html.fromHtml(str));
     }
 
     public String getDiff(Date date1, Date date2) {
