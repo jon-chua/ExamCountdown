@@ -20,12 +20,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-
 public class MainActivity extends AppCompatActivity {
 
     BufferedReader reader;
     SimpleDateFormat format = new SimpleDateFormat("dd MMM yyyy HH:mm");
     ArrayList<Exam> exams = new ArrayList<>();
+    ArrayList<Exam> curr = new ArrayList<>();
     TextView textView;
     Thread t;
 
@@ -38,21 +38,23 @@ public class MainActivity extends AppCompatActivity {
 
         readData();
 
-        Button button = findViewById(R.id.button_search);
+        Button button_search = findViewById(R.id.button_search);
+        Button button_clear = findViewById(R.id.button_clear);
         final EditText search = findViewById(R.id.editText);
 
-        button.setOnClickListener(new View.OnClickListener() {
-
+        button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 boolean found = false;
                 String code = search.getText().toString().trim().toUpperCase();
 
                 for (int i = 0; i < exams.size(); i++) {
-                    if (exams.get(i).getCode().equals(code)) {
+                    final Exam temp = exams.get(i);
+                    if (temp.getCode().equals(code)) {
                         // Found
                         found = true;
                         if (t != null ) t.interrupt();
+                        curr.add(temp);
                         final int j = i;
                         t = new Thread() {
                             @Override
@@ -63,8 +65,7 @@ public class MainActivity extends AppCompatActivity {
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                Date now = new Date();
-                                                updateTextView(exams.get(j).toString(), now, exams.get(j).getDateTime());
+                                                updateTextView();
                                             }
                                         });
                                     }
@@ -82,10 +83,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        button_clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (t != null) t.interrupt();
+                curr.clear();
+                textView.setText("");
+            }
+        });
     }
 
-    private void updateTextView(String text, Date date1, Date date2) {
-        String str = "<b>"  + text + "</b><br />" + "Exam: " + format.format(date2) + "<br />" + getDiff(date1, date2) + " remaining";
+    private void updateTextView() {
+        Date now = new Date();
+        String str = "";
+        for (Exam e : curr) {
+            str += "<b>"  + e.toString() + "</b><br />" + "Exam: " + format.format(e.getDateTime()) + "<br />" + getDiff(now, e.getDateTime())+ " remaining" + "<br /><br />";
+        }
         textView.setText(Html.fromHtml(str));
     }
 
