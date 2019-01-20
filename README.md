@@ -21,7 +21,7 @@ Furthermore, we had to touch up on Java as we did not have much prior Java knowl
 ## Accomplishments we are Proud of
 We built a working Android App that allows users to count down to their upcoming NUS exams from scratch.
 
-## Prizes We Are Competing For
+## Prizes we are Competing for
 1. Coreteam's Best Roll
 1. Most Annoying Hack
 1. Most Entertaining Hack
